@@ -93,7 +93,10 @@ visual-style. A `frame.md` satisfies that gate and is strictly better for video
 
 Point the agent at the project folder and the `frame.md`, then ask for a
 **table of key events**: a scene-by-scene breakdown — for each scene, what gets
-said and a one-line description of what's on screen.
+said and a one-line description of what's on screen. Shape the structure and
+pacing from the launch-video patterns in
+[references/prompt-craft.md](references/prompt-craft.md) (Before-After-Bridge
+skeleton, 8-10 scenes, fast hook, demo scenes hold longest), not as a feature list.
 
 Refine the **copy** here, and only the copy. This is the meat of the story.
 Push back on lines ("that should say X", "help me brainstorm the hook") before a
@@ -180,6 +183,12 @@ paths, the component catalog, and the release-video replication workflow.
   presets + the overlay procedure). superframes delegates step 2 to it.
 - [references/storyboard-workflow.md](references/storyboard-workflow.md) —
   key-events table + storyboard.html, exact prompts, the iterate-on-static loop.
+- [references/prompt-craft.md](references/prompt-craft.md) — the craft that makes
+  launches good: narrative skeleton, real pacing numbers, transition grammar,
+  signature motion moves, the HyperFrames prompting vocabulary (motion/caption/
+  transition/marker terms), and the anti-PPT discipline. Distilled from the
+  open-source launch videos + the HyperFrames prompting guide. Read before
+  drafting the key-events table and storyboard.
 - [references/template-reuse.md](references/template-reuse.md) — local clone
   paths, the launch-video repos, component catalog, release-video replication.
 - [references/source-notes.md](references/source-notes.md) — provenance: the two
