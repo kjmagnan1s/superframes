@@ -34,6 +34,17 @@ consumes the brand's `frame.md`; `hyperframes` authors the composition.
 Copy this folder into `~/.claude/skills/superframes/` (or install it as a plugin
 skill). Invoke it when you start a HyperFrames video.
 
+## Your own layer (optional)
+
+Keep personal defaults out of the public files. If `local/OWNER.md` exists (the
+`local/` folder is gitignored), `SKILL.md` tells the agent to read it first: put
+your brand look, approval gates, default paths, and tooling there, and it
+overrides the generic defaults.
+
+Maintainers: run `./scripts/install-hooks.sh` once after cloning. It installs a
+pre-push guard that blocks secrets and personal data, plus any extra private
+markers you list in `local/hook-extra-patterns.txt`.
+
 ## Credit & license
 
 Engine, concepts, tooling, and templates: **HyperFrames / HeyGen**

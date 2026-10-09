@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+#
+# Pre-push guard for the public superframes repo.
+#
+# Scans the committed tree of every ref being pushed for (a) secret/credential
+# patterns and (b) personal/local data (absolute home paths, personal emails),
+# and ABORTS the push if anything matches. This is the durable backstop that
+# keeps private content out of the public repo without relying on memory.
+#
+# Install (or reinstall after a clone): ./scripts/install-hooks.sh
+#
+# Repo-specific PRIVATE markers (your name, project codenames, mount paths) are
+# NOT baked into this tracked file — they would be published. Instead they are
+# loaded at runtime, if present, from local/hook-extra-patterns.txt, a gitignored
+# file that never leaves your machine. See local/README.md.
+#
+# Override for a single push (use only when you are certain):  git push --no-verify
+
+set -euo pipefail
+
+ZERO="0000000000000000000000000000000000000000"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# --- Generic secret / credential patterns -----------------------------------
+SECRET_RE='sk-[A-Za-z0-9]{20,}|sk_[A-Za-z0-9]{32,}|xai-[A-Za-z0-9]{40,}|AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ELEVENLABS_API_KEY=[A-Za-z0-9_]{16,}|xi-api-key:[[:space:]]*[A-Za-z0-9_]{16,}|TYPESAFE_API_KEY=[A-Za-z0-9_-]{16,}'
+
+# --- Generic personal / local data patterns ---------------------------------
+# Absolute home/mount paths and personal email providers. (Use ~ or relative
+# paths in docs instead of /Users/<you>, and example.com for sample emails.)
+PERSONAL_RE='/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|/Volumes/[A-Za-z0-9._-]+|[A-Za-z0-9._%+-]+@(gmail|outlook|hotmail|yahoo|icloud|proton(mail)?)\.[A-Za-z]{2,}'
+
+# --- Optional private markers from the gitignored local layer ---------------
+EXTRA_FILE="$REPO_ROOT/local/hook-extra-patterns.txt"
+if [ -f "$EXTRA_FILE" ]; then
+  EXTRA_RE="$(grep -vE '^[[:space:]]*(#|$)' "$EXTRA_FILE" | paste -sd '|' -)"
+  [ -n "$EXTRA_RE" ] && PERSONAL_RE="$PERSONAL_RE|$EXTRA_RE"
+fi
+
+# Lockfiles hold sha256 integrity hashes that look like hex secrets — skip them.
+PATHSPEC=(":(exclude)uv.lock")
+
+fail=0
+
+scan_commit() {
+  local sha="$1" hits
+  hits=$(git grep -I -n -i -E "$PERSONAL_RE" "$sha" -- "${PATHSPEC[@]}" 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo ""
+    echo "  ✖ PERSONAL / LOCAL data found in commit $sha:"
+    echo "$hits" | sed 's/^/      /'
+    fail=1
+  fi
+  hits=$(git grep -I -n -E "$SECRET_RE" "$sha" -- "${PATHSPEC[@]}" 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo ""
+    echo "  ✖ SECRET / CREDENTIAL pattern found in commit $sha:"
+    echo "$hits" | sed 's/^/      /'
+    fail=1
+  fi
+}
+
+# stdin: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$ZERO" ] && continue   # branch deletion, nothing to scan
+  scan_commit "$local_sha"
+done
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "  ──────────────────────────────────────────────────────────────"
+  echo "  PUSH BLOCKED by pre-push guard. The content above is personal or"
+  echo "  secret and must not go to the public repo. Move it into the"
+  echo "  gitignored local/ layer, or scrub it, then push again."
+  echo "  (Override for one push only, if certain:  git push --no-verify)"
+  echo "  ──────────────────────────────────────────────────────────────"
+  exit 1
+fi
+
+exit 0

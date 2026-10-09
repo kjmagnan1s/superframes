@@ -60,7 +60,8 @@ Adds / sharpens:
 - Media: can play an existing clip inside a composition; a strong model can
   auto-clip an MP4 to a timestamp range.
 - Export: MP4 / MOV / WebM. Transparent WebM to composite motion graphics into
-  Premiere etc. Can also export as a website (interactive player).
+  Premiere etc. Can also export as a website (interactive player). (This skill
+  renders transparent output as MOV instead: WebM often loses the alpha channel.)
 - Anti-patterns: "PPT video" for launches (no one watches past 5s); designing a
   video like a webpage (spatial vs temporal aesthetics); hand-editing the raw
   generated code; skipping the storyboard; building net-new every time; adding

@@ -3,8 +3,8 @@
 The core mindset (Jake, HeyGen): **"I try to not make things net-new if I
 can."** Every HyperFrames video is code, so a proven component drops into a new
 video, re-skinned by a different `frame.md`, faster and more reliably than
-building from scratch. You don't read the (agent-written, huge) code yourself —
-you point the agent at the source and tell it what to pull.
+building from scratch. The generated code is huge: don't read a launch folder
+whole. Open the composition that holds the effect and pull just that piece.
 
 ## Where the templates live
 

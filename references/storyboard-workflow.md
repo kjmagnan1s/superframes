@@ -1,75 +1,79 @@
-# Storyboard workflow — settle words, then lock the look
+# Storyboard workflow: settle the words, then lock the look
 
-Two artifacts sit between "I have a project folder" and "render the video": a
-**key-events table** (the words) and a **storyboard** of static keyframes (the
-look). Both are cheap to iterate; the full composition is not. Getting these
-right is the single biggest lever on quality and speed.
+Two cheap artifacts sit between the project folder and the render: the
+**key-events table** (the words) and the **storyboard** (the look). The
+storyboard is what the approval gate reviews; nothing animates until it passes.
 
-## Step A — the key-events table (the words)
+## Key-events table
 
-Point the agent at the project folder and the `frame.md`, then:
+Read everything in the project folder and the `frame.md`, then write a markdown
+table in the project folder, one row per scene: scene number, what is SAID, a
+one-line note on what is ON SCREEN, and a target duration. Pacing and structure
+come from `prompt-craft.md`.
 
-> "Read everything in this folder and the frame.md, then give me a **table of
-> key events** for a ~Ns video: one row per scene with what we SAY and a
-> one-line note on what's ON SCREEN."
+Refine only the copy at this stage: the hook, the claims, the closing line. Cut
+or merge rows here, not after animation. Flag any beat that drifts off the
+video's one message; an off-topic tangent is easy to miss in a table and obvious
+in a render.
 
-Then refine **only the copy**. This is the meat of the story — the hook, the
-claims, the closing line. Push back here: "scene 2 should say X", "help me
-brainstorm three hooks", "cut scene 5, merge it into 4." Fixing words now is
-free; rewriting after animation throws away work.
+## Storyboard file shapes
 
-Keep the table as a markdown file in the project folder so the storyboard and
-final composition both trace back to it.
+- **Default: one file.** `storyboard.html` with a stack of `.scene` blocks, one
+  static frame per scene at its densest moment. Quick to scan the whole film.
+- **Per-scene contact sheet** only for a scene too busy to read in the stack.
 
-## Step B — the storyboard (the look)
+Examples in `github.com/heygen-com/hyperframes-launches`: `variables-launch/storyboard.html`,
+`variables-launch/STORYBOARD-SCENE-05.html`,
+`frame-md-launch-storyboard/scene-02-contact-sheet.html`.
 
-From the approved table, have the agent build a **static** storyboard — no
-animation yet:
+When the brand already has an approved storyboard, start from it instead of
+re-deriving the look, then change what this video needs.
 
-> "From the key-events table, build a `storyboard.html`: one static frame per
-> scene, each showing that scene's most visually DENSE moment. Use the frame.md
-> for the look and pull references from the launch-video repos. No GSAP yet."
+## Storyboards over real footage
 
-This is "Layout Before Animation" (from the `hyperframes` skill) applied to the
-whole film at once. A full 45s+ composition takes minutes to generate; a static
-keyframe set takes ~1-2 minutes. So you iterate on the look here — "the hook
-needs more contrast", "this stat is too small", "wrong font on scene 3" — until
-the aesthetic is locked, THEN animate. You avoid burning a long render on the
-wrong direction.
+For a talking-head edit with overlays or HyperFrames scenes:
 
-### Two storyboard shapes (both real)
-- **One file, all scenes** — `storyboard.html` with a stack of `.scene` blocks.
-  Quick to scan the whole film. (Example:
-  `github.com/heygen-com/hyperframes-launches/variables-launch/storyboard.html`.)
-- **Per-scene "contact sheets"** — one file per scene for dense scenes.
-  (Examples: `variables-launch/STORYBOARD-SCENE-05.html`,
-  `frame-md-launch-storyboard/scene-02-contact-sheet.html`,
-  `scene-03-contact-sheet.html`.)
+- Transcribe first so beats land on real words. Keep the storyboard in its own
+  folder inside the project.
+- One still per beat: a real frame grab at the beat timestamp with the planned
+  overlay mock composited on it. A cut-only edit still gets beat stills that show
+  the cut structure.
+- Mark each beat's visual source (built in HTML, or a generated plate plus a
+  build) so the review can approve that call too.
+- Use the script, not just the transcript: on-screen data the speaker chose not
+  to say aloud lives there.
 
-Use the single file by default; split out a per-scene contact sheet only for a
-scene that's too busy to read in the stack.
+## Serving and checking it
 
-## Step C — promote to a full composition
+```bash
+cd <storyboard folder> && python3 -m http.server 8000
+```
 
-Once the storyboard is approved:
+Chrome can't open `file://` pages. Check the page in a browser yourself before
+sending the link. Design-lint warnings on `storyboard.html` are about an
+internal review page; ignore them rather than writing suppressions.
 
-> "Turn this storyboard into a full HyperFrames video and open it in the
-> HyperFrames studio."
+## The review message
 
-Each storyboard frame becomes a scene. Authoring now belongs to the
-`hyperframes` skill (timeline contract, entrance/exit rules, transitions,
-captions, TTS) and `hyperframes-cli` (lint / validate / preview / render). Hand
-off — don't re-derive the mechanics here.
+Send the URL with a short numbered list of the open decisions (hook text, a
+layout choice, a plate vs build call), so the reviewer can answer per number
+("1 yes, 2 is okay, 3 cut it"). Those answers usually change the build. On
+approval, start the build; don't park it behind other work.
 
-## Why this order matters
-- Words wrong + look right = a polished video that says the wrong thing.
-- Look wrong + words right = a long render you throw away.
-- Settling each on its cheap artifact first means the expensive step (the full
-  animated composition) runs once, mostly right.
+## After approval
 
-## Reference
-The canonical end-to-end demo HeyGen shipped is
-`github.com/heygen-com/hyperframes-launches/frame-md-launch-storyboard/` — it
-contains the frame.md, the storyboard contact sheets, the compositions, a
-`HANDOFF.md`, and the final render. Read it when you want to see the whole flow
-in one place.
+Each storyboard frame becomes a scene. Render a rough pass first
+(`npx hyperframes render --quality draft`) so timing and layout problems show
+before the full build. Authoring then belongs to the `hyperframes` skill and CLI
+work to `hyperframes-cli`.
+
+## Why this order
+
+- Words wrong, look right: a polished video that says the wrong thing.
+- Look wrong, words right: a long render thrown away.
+- Settling each on its cheap artifact means the expensive full composition runs
+  once, mostly right.
+
+The canonical end-to-end example is
+`github.com/heygen-com/hyperframes-launches/frame-md-launch-storyboard/`
+(frame.md, contact sheets, compositions, `HANDOFF.md`, final render).

@@ -1,5 +1,14 @@
 # Prompt craft — what makes a HyperFrames launch video good
 
+## Contents
+- The narrative skeleton
+- Pacing (real numbers)
+- Transition grammar
+- Signature moves (the repeatable quality)
+- Openings & closings
+- Prompting vocabulary (from the HyperFrames guide)
+- The anti-PPT discipline
+
 Two sources, both **HyperFrames / HeyGen**: the patterns below are distilled from
 their open-source launch videos (9 analyzed: cloud-render, claude-paper, spacex,
 variables, inspector, timeline, pr-to-video, frame-md-launch-storyboard,
@@ -34,6 +43,8 @@ statements interleaved with product proof; see inspector, variables).
 ## Pacing (real numbers)
 
 - **Total:** 30-60s. Short product launches ~30-40s; conversational/explainer ~40-60s.
+  These are launch-video numbers. Talking-head videos run longer; use the
+  platform's or owner's length limit for those.
 - **Scenes:** 8-10 top-level.
 - **Beats:** 2-7s for narrative scenes. **Hooks short** (~4-5s). **Connective
   micro-beats very short** (<1.5s; one montage runs sub-second cards at 0.15/0.33/0.67s).

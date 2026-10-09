@@ -1,1 +1,8 @@
 .DS_Store
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Owner's private layer (gitignored; never published)
+/local

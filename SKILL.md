@@ -1,195 +1,139 @@
 ---
 name: superframes
-description: Pre-production workflow for high-quality HyperFrames videos — the HeyGen builder process (assets-first project folder, frame.md aesthetic source, key-events table, static storyboard keyframes, template/component reuse, studio iteration). Use this BEFORE authoring any HyperFrames composition, and whenever the user wants a launch video, product/feature announcement, "turn this website/PR/repo into a video," a polished motion-graphics piece, or says "make a video about X." Use it whenever the goal is a crisp, on-brand video rather than a quick one-off — it sets up the work so the hyperframes skill can author it well. Pairs with (does not replace) the hyperframes and hyperframes-cli skills. Trigger even when the user doesn't say "HyperFrames" by name, as long as they want an AI-built video with real production quality.
+description: Builds the plan and storyboard for a HyperFrames video before anything is animated - an assets-first project folder, one frame.md, a key-events table, static keyframes in storyboard.html, and reuse of HeyGen's open-source launch components - then hands off to the hyperframes skill for authoring. Use it for launch, product, or feature videos built in HyperFrames and for talking-head edits that carry HyperFrames scenes or overlays, including when the user says "make a video about X", "storyboard this", or wants a polished motion-graphics piece. Use it instead of hyperframes-studio whenever the job is planning and storyboarding a new video; hyperframes-studio is for live edits inside an open Studio project, and hyperframes or hyperframes-cli take over for composition authoring and CLI commands once the storyboard is approved.
 ---
 
 # Superframes
 
-The `hyperframes` skill knows HOW to write a composition (data attributes,
-timeline contract, animation rules). **Superframes is the layer above it: the
-production process the HeyGen team uses to get great videos fast.** Most weak
-HyperFrames output comes from skipping straight to "make me a video" with no
-assets, no aesthetic source, and no storyboard. This skill front-loads that
-work so the first render is already close.
+**Owner layer:** if `local/OWNER.md` exists in this skill's folder, read it
+first. It holds the owner's look, gates, defaults, and tooling, and it overrides
+the defaults here.
 
-Use `hyperframes` for authoring mechanics and `hyperframes-cli` for CLI
-commands. Superframes orchestrates them and the open-source templates.
+The `hyperframes` skill knows how to write a composition. Superframes is the
+production process in front of it, distilled from how HeyGen builds its launch
+videos: real assets first, one aesthetic source, words settled in a table, the
+look settled on static frames, proven components reused. Weak HyperFrames output
+almost always skipped those steps.
 
-## The five pillars
+## Pick the entry path
 
-1. **Set up before you prompt.** A project folder full of real context and
-   assets beats any clever prompt. The agent can only match an aesthetic it can
-   see.
-2. **One aesthetic source: a frame.md.** Lock brand + motion intent in a single
-   `frame.md` (the video-native evolution of `design.md`) and feed it
-   everywhere. Exactly one — competing sources muddy the look.
-3. **Storyboard before you animate.** Settle the words in a key-events table,
-   then lock the look with one static HTML keyframe per scene. Iterate there —
-   it is seconds per loop, not minutes.
-4. **Reuse, don't rebuild.** Every HyperFrames video is code. Pull components
-   and whole effects from HeyGen's open-source launch videos and from your own
-   past projects. Net-new is slower and less likely to work first try.
-5. **Last-mile in the studio.** Open the preview studio and nudge text,
-   position, and timing by hand. Those edits become code the agent can read, so
-   you and the agent stay in sync without re-prompting.
+- **A website or landing page exists:** run `/product-launch-video` (through
+  `/hyperframes` routing). Its capture writes `capture/extracted/tokens.json`,
+  then it builds `frame.md` from a preset.
+- **Music-driven:** use the audio-reactive reference in the `hyperframes` skill.
+- **Anything else** (a feature, an idea, a PR or a week of commits, a talking-head
+  video with HyperFrames scenes): run the workflow below. For a PR or commits,
+  the diff and commit log are the context doc in step 1.
 
-## Pick the entry path first
+The anti-patterns at the bottom apply on every path.
 
-Before any of the workflow below, choose how the project starts — the fastest
-correct path wins:
+## Workflow
 
-- **There's a website/landing page** → use the `website-to-video` skill
-  ("Use my website, make me a launch video" / give it the URL). It scrapes
-  assets, writes a `design.md`, storyboards, and one-shots a draft. This is also
-  the best worked example to read if you're new — it shows the whole pipeline.
-- **It's a GitHub PR or recent commits** → use the `pr-to-video` skill (HeyGen
-  ships this; "look at my commits for the last 7 days and make a recap video").
-- **It's music-driven** → use the audio-reactive path (the `hyperframes` skill's
-  audio-reactive reference). HeyGen also ships a dedicated `music-to-video` skill
-  upstream — check whether it's installed before hand-rolling.
-- **None of the above (a feature, an idea, a launch with no page yet)** → run
-  the manual workflow below. This is Jake's launch process and is the heart of
-  this skill.
+### 1. Fill the project folder before planning
 
-Whatever the path, the pillars and anti-patterns still apply.
+- A context doc: the feature README, the announcement text, the exact claims.
+  For a talking-head video, read the script as well as the transcript; numbers
+  and prompts the speaker didn't say aloud often belong on screen.
+- Real assets: logo, brand colors, UI screenshots, product shots. Check the
+  project folder for screenshots the user already dropped in.
+- References: frames or stills of looks to match.
+- Exactly one aesthetic source, the `frame.md` (step 2).
 
-## The manual workflow
+Claude matches what it can see, so more real assets up front means fewer rounds.
 
-### 1. Build the project folder (assets-first)
+### 2. One frame.md
 
-Create a dedicated folder and fill it with context BEFORE prompting:
+Use the `frame-md` skill to produce it. A frame.md is per brand: build it once
+and reuse it. When the brand already has a preset, use it and skip the picker.
+Skip the hyperframes.dev/design web tool; it is login-gated and does nothing
+`frame-md` can't.
 
-- A short context doc — a README of the feature, the announcement text, the
-  exact messaging/claims you want said. Ground the copy in real material.
-- Real assets: logo, brand colors, Figma exports, UI screenshots, product
-  shots. Screenshot the actual UI you're announcing.
-- Reference examples you like — frames from other videos, stills, links. If you
-  can already picture a few frames of the video, put those references in.
-- Exactly **one** aesthetic source (the `frame.md`, next step).
+### 3. Key-events table (settle the words)
 
-Why: the agent matches what it can see. More real assets up front = a closer
-match on the first pass and far less back-and-forth.
+One row per scene: what is said and a one-line note on what is on screen. Shape
+it with [references/prompt-craft.md](references/prompt-craft.md) (narrative
+skeleton and pacing); read its first two sections before drafting. Refine only
+the copy here. Fixing words now is free; after animation it is expensive.
 
-### 2. Create the aesthetic source — frame.md
+Optional Jev checks (cheap, advisory, never rewrite a line; details in
+[references/jev-scoring.md](references/jev-scoring.md)):
 
-`design.md` is a brand guideline built for **web pages** (colors, fonts, hex
-codes; the agent takes spatial liberties). `frame.md` is the **video-native**
-reformat: it tells the agent to maximize the frame, go larger, and lean on
-motion — because video is a temporal medium, not a scrollable page.
+- `python3 scripts/jev_keyevents.py <table.md> --total <seconds>`: weak rows,
+  merge candidates, narrative slot, and pacing fit per row.
+- `python3 scripts/jev_audit.py <BRIEF.md> <table.md>`: the plan against the
+  text-checkable anti-patterns. Default: run it once before step 4.
 
-Use the **`frame-md` skill** to produce it — it wraps HyperFrames' open-source
-frame.md presets and overlay procedure (pick the closest preset, overlay the
-brand's atoms, adapt the treatments), sourcing atoms from a design.md, a
-`website-to-video` capture, or raw brand inputs. A frame.md is a per-brand
-artifact: build it once, reuse across every video for that brand. Skip the
-hyperframes.dev/design online tool — it's login-gated and does nothing the
-`frame-md` skill can't.
+### 4. Storyboard (lock the look)
 
-The existing `hyperframes` "Visual Identity Gate" expects a DESIGN.md /
-visual-style. A `frame.md` satisfies that gate and is strictly better for video
-— point the gate at it.
+Build one static frame per scene in `storyboard.html`, each showing the scene's
+densest moment, styled from the `frame.md`. No animation. Iterate here; a static
+frame takes a minute or two, a full composition takes many.
 
-### 3. Write the key-events table (settle the words)
+For the HyperFrames run itself, write `BRIEF.md` with `storyboard: yes` so the
+upstream review loop pauses on the board. That is the upstream contract in
+`brief-format.md` in the `hyperframes` skill's references: `flow` (`automation` or
+`companion`) plus `storyboard: yes` derives `mode: collaborative`
+(`brief-contract.md` § 1). Default: `storyboard: yes`. Use `storyboard: no`
+only when the user explicitly asks for a hands-off run.
 
-Point the agent at the project folder and the `frame.md`, then ask for a
-**table of key events**: a scene-by-scene breakdown — for each scene, what gets
-said and a one-line description of what's on screen. Shape the structure and
-pacing from the launch-video patterns in
-[references/prompt-craft.md](references/prompt-craft.md) (Before-After-Bridge
-skeleton, 8-10 scenes, fast hook, demo scenes hold longest), not as a feature list.
+Mechanics (file shapes, real-footage beat stills, serving, the review message):
+[references/storyboard-workflow.md](references/storyboard-workflow.md). Preview it
+over a local HTTP server (`python3 -m http.server` in the storyboard folder);
+Chrome can't open `file://` pages.
 
-Refine the **copy** here, and only the copy. This is the meat of the story.
-Push back on lines ("that should say X", "help me brainstorm the hook") before a
-single pixel is animated — fixing words now is free; fixing them after
-animation is expensive.
+### 5. Rough render, then the full composition
 
-### 4. Lock the look — storyboard.html (static keyframes)
+When the storyboard is approved, start the build right away. Turn each
+storyboard frame into a scene and render a quick rough pass first
+(`--quality draft`) so timing and layout problems show before the full build.
+From here, authoring is the `hyperframes` skill's job and CLI work (lint,
+validate, preview, render) is `hyperframes-cli`'s.
 
-From the key-events table, have the agent build a `storyboard.html`: **one
-static frame per scene**, each showing that scene's most visually dense moment,
-styled from the `frame.md` and from references pulled out of the launch-video
-repos (step 6). No animation yet.
+### 6. Reuse before building
 
-Why this is the highest-leverage step: a full 45s+ composition takes minutes to
-generate. A static frame takes ~1-2 minutes. Iterate on the static frames until
-the aesthetic is right ("the hook needs more contrast", "shrink this stat"),
-THEN animate. This is "Layout Before Animation" from the hyperframes skill,
-applied to the whole video at once. See
-[references/storyboard-workflow.md](references/storyboard-workflow.md) for exact
-prompts.
+Before building anything net-new, find it in HeyGen's launch videos, the
+registry, or your own past projects, and adapt it to the `frame.md`. Repo paths,
+the catalog, and reuse prompts:
+[references/template-reuse.md](references/template-reuse.md).
+`python3 scripts/jev_templates.py --brief "..." [--kind launches|components|blocks|examples]`
+ranks the catalog against the brief so Claude opens three or four folders, not
+all fourteen. It ranks descriptions; judge the bones by eye.
 
-### 5. Promote to a full composition + open the studio
+### 7. Studio polish and export
 
-Once the storyboard is approved: "turn this into a full HyperFrames video and
-open it in the HyperFrames studio." Each storyboard frame becomes a scene. From
-here, authoring is the `hyperframes` skill's job — hand off to it for the
-timeline, transitions, captions, TTS, and the lint/validate/render loop
-(`hyperframes-cli`).
+Small nudges (text, position, timing) go through the HyperFrames studio, where
+edits become code Claude can read. Structural changes go through chat.
 
-### 6. Reuse components and effects
+Export MP4 by default. For anything transparent (overlays to composite), render
+`--format mov`, not WebM: WebM often comes out `yuv420p` with no real alpha.
+Confirm with
+`ffprobe -v error -select_streams v:0 -show_entries stream=pix_fmt -of csv=p=0 <file>`;
+anything not `yuva*` has no alpha, so rebuild it.
 
-Before building anything net-new, look for it in the open-source launch videos
-or your own past projects:
+## Anti-patterns
 
-- "Pull the [prompt box / text reveal / lower-third] from [that video] for my
-  intro."
-- "I love the text animation in [launch video]; grab it and adapt it here."
+`scripts/jev_audit.py` checks the text-checkable ones; the rest need eyes.
 
-You don't read the (agent-written, huge) code yourself — point the agent at the
-cloned repos and let it extract. See
-[references/template-reuse.md](references/template-reuse.md) for the local repo
-paths, the component catalog, and the release-video replication workflow.
-
-### 7. Iterate in the studio, then export
-
-- Open the studio with `npx hyperframes preview` (run `npx hyperframes lint`
-  first — it catches missing `data-composition-id`, overlapping tracks, and
-  unregistered timelines before you preview). Drag elements, edit
-  text/font/color/motion curves by hand.
-  Edits become code, so the agent sees the diff — use the studio for the tiny
-  changes you can't describe, and chat for structural ones.
-- Export to MP4 (default), MOV, or WebM. For compositing motion graphics into a
-  pro editor (Premiere/Resolve), export a **transparent-background WebM**. You
-  can also export as a website for an interactive player.
-
-## Anti-patterns (why videos come out weak)
-
-- **The "PPT video."** Slides with a fade between them. Nobody watches a
-  launch past 5 seconds of that. Drive it with motion and timing.
-- **Designing a video like a web page (spatial vs temporal).** On a page the
-  eye scans and chooses where to look; in video the eye stays center and
-  information is fed over time. Maximize the frame, fewer-bigger elements, let
-  motion carry hierarchy. This is the whole reason `frame.md` exists.
-- **Skipping the storyboard.** Burning a long full-composition render only to
-  find the aesthetic is wrong. Lock it on static frames first.
-- **Building net-new every time.** Slower and more bug-prone than adapting a
-  proven component.
-- **More than one aesthetic source.** Two design files = a muddled look. One
-  `frame.md`.
-- **Hand-editing the raw generated code.** It's agent-written and huge. Use the
-  studio UI or tell the agent what to change.
-
-## Model and cost notes
-
-- Use a top-tier frontier model for the best quality (strong visual reasoning
-  also lets it clip source video to timestamps, match references, etc.).
-- Gemini is the quality-to-cost pick (HeyGen's own internal agent runs on it).
-- TTS defaults to a free local model the agent auto-downloads; connect HeyGen or
-  ElevenLabs only when you want premium voices.
+- **The PPT video:** slides with a fade between them. Drive it with motion and timing.
+- **Designing a video like a web page:** in video the eye stays center and
+  information arrives over time. Fewer, bigger elements; let motion carry hierarchy.
+- **Skipping the storyboard:** a long render that shows the look was wrong.
+- **Building net-new every time:** slower and buggier than adapting a proven component.
+- **More than one aesthetic source:** two design files muddy the look.
+- **Hand-editing the generated code:** it is huge. Use the studio or describe the change.
 
 ## References
 
-- The **`frame-md` skill** — owns frame.md creation (HyperFrames' open-source
-  presets + the overlay procedure). superframes delegates step 2 to it.
-- [references/storyboard-workflow.md](references/storyboard-workflow.md) —
-  key-events table + storyboard.html, exact prompts, the iterate-on-static loop.
-- [references/prompt-craft.md](references/prompt-craft.md) — the craft that makes
-  launches good: narrative skeleton, real pacing numbers, transition grammar,
-  signature motion moves, the HyperFrames prompting vocabulary (motion/caption/
-  transition/marker terms), and the anti-PPT discipline. Distilled from the
-  open-source launch videos + the HyperFrames prompting guide. Read before
-  drafting the key-events table and storyboard.
-- [references/template-reuse.md](references/template-reuse.md) — local clone
-  paths, the launch-video repos, component catalog, release-video replication.
-- [references/source-notes.md](references/source-notes.md) — provenance: the two
-  transcripts and the repo list this skill distills.
+- [references/storyboard-workflow.md](references/storyboard-workflow.md): key-events
+  table and storyboard mechanics, storyboards over real footage, the review message.
+- [references/prompt-craft.md](references/prompt-craft.md): narrative skeleton,
+  pacing numbers, transition grammar, signature moves, prompting vocabulary.
+- [references/template-reuse.md](references/template-reuse.md): launch-video repos,
+  component catalog, replicating a release video.
+- [references/jev-scoring.md](references/jev-scoring.md): what the Jev scripts
+  decide, their thresholds, and what stays a human call.
+- [references/source-notes.md](references/source-notes.md): provenance of the
+  HeyGen sources this skill distills.
+- The `frame-md` skill owns frame.md creation.
+- Maintainers: `scripts/pre-push` guards pushes against secrets and personal
+  data; run `./scripts/install-hooks.sh` once after cloning.
