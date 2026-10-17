@@ -52,8 +52,12 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable
 
 URL = "https://api.typesafe.ai/v1/systemone"
-MODEL = "jev-latest"
+MODEL = "jev-1.14.0"
 INPUT_COST_PER_M = 0.042
+# Experimental flags (TypeSafe, 2026-10-14): image input and 262k context.
+# On text requests they changed neither answers nor latency in a 2026-10-14 probe.
+DANGER_ZONE = {"TypeSafe-Danger-Zone-Images": "true",
+               "TypeSafe-Danger-Zone-Long-Context": "true"}
 
 # Below this, the call is not ours to make. Route the item to the user.
 # NOT an accuracy claim: TypeSafe's own docs say thresholds must be evaluated
@@ -176,6 +180,7 @@ class Jev:
             req = urllib.request.Request(URL, data=body, headers={
                 "Authorization": f"Bearer {self.key}",
                 "Content-Type": "application/json",
+                **DANGER_ZONE,
             })
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout) as r:
